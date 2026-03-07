@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/app-header";
+import { GeneratorInputPanel } from "@/components/generator-input-panel";
 import { WorkspacePanel } from "@/components/workspace-panel";
 
 export default function Home() {
@@ -11,37 +12,9 @@ export default function Home() {
             <WorkspacePanel
               eyebrow="Input"
               title="Project details"
-              description="Capture the core information needed to generate a README. Keep inputs structured and concise for cleaner output."
+              description="Choose a source mode, then fill in the repository link or the manual project details needed for README generation."
             >
-              <div className="space-y-4">
-                <label className="block space-y-2">
-                  <span className="text-sm font-medium text-foreground">
-                    Project name
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="My project"
-                    className="w-full rounded-2xl border border-border bg-[#fcfaf6] px-4 py-3 text-sm text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-[rgba(109,40,217,0.12)]"
-                  />
-                </label>
-                <label className="block space-y-2">
-                  <span className="text-sm font-medium text-foreground">
-                    Short description
-                  </span>
-                  <textarea
-                    placeholder="Describe what the project does and who it is for."
-                    className="min-h-48 w-full rounded-2xl border border-border bg-[#fcfaf6] px-4 py-3 text-sm text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-[rgba(109,40,217,0.12)]"
-                  />
-                </label>
-                <div className="flex flex-wrap gap-3 pt-2">
-                  <button className="rounded-full bg-accent px-5 py-3 text-sm font-medium text-white transition hover:brightness-105">
-                    Generate README
-                  </button>
-                  <button className="rounded-full border border-border bg-white px-5 py-3 text-sm font-medium text-foreground transition hover:border-accent hover:text-accent">
-                    Clear
-                  </button>
-                </div>
-              </div>
+              <GeneratorInputPanel />
             </WorkspacePanel>
             <WorkspacePanel
               eyebrow="Preview"
