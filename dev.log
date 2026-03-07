@@ -1,0 +1,26 @@
+
+> readme-generator@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.38.207.201:3000
+
+✓ Starting...
+✓ Ready in 2.7s
+ GET / 200 in 2.1s (compile: 1644ms, render: 474ms)
+ GET / 200 in 210ms (compile: 17ms, render: 193ms)
+ GET / 200 in 958ms (compile: 646ms, render: 312ms)
+ GET / 200 in 285ms (compile: 11ms, render: 274ms)
+ GET / 200 in 294ms (compile: 19ms, render: 275ms)
+ GET / 200 in 267ms (compile: 14ms, render: 254ms)
+ GET / 200 in 291ms (compile: 7ms, render: 283ms)
+ GET / 200 in 213ms (compile: 16ms, render: 197ms)
+ GET / 200 in 312ms (compile: 17ms, render: 294ms)
+ GET / 200 in 203ms (compile: 15ms, render: 188ms)
+ GET / 200 in 113ms (compile: 9ms, render: 104ms)
+✓ Compiled in 178ms
+ GET / 200 in 267ms (compile: 185ms, render: 82ms)
+ GET / 200 in 174ms (compile: 12ms, render: 162ms)
+✓ Compiled in 3.1s
+ GET / 200 in 2.6s (compile: 2.2s, render: 338ms)
