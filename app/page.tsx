@@ -34,23 +34,25 @@ export default function Home() {
                   </span>
                 </div>
                 <div
-                  className="space-y-4 text-sm leading-7 text-[#3f3a35]"
+                  className="space-y-3 text-[0.84rem] leading-6 text-[#3f3a35]"
                   style={{ fontFamily: "var(--font-space-mono), monospace" }}
                 >
-                  <p># Project title</p>
+                  <p># Project Name</p>
+                  <p>## Description</p>
                   <p>
-                    A short summary will appear here once the input form is filled
-                    out and the README is generated.
+                    A concise overview of the project will appear here after the
+                    generator is filled out.
                   </p>
-                  <p>## Features</p>
-                  <p>- Clear project overview</p>
-                  <p>- Setup instructions</p>
-                  <p>- Usage examples</p>
                   <p>## Installation</p>
-                  <p>```bash</p>
-                  <p>npm install</p>
-                  <p>npm run dev</p>
-                  <p>```</p>
+                  <p>Step-by-step setup instructions will be inserted here.</p>
+                  <p>## Usage</p>
+                  <p>Usage guidance and examples will appear in this section.</p>
+                  <p>## Tech Stack</p>
+                  <p>Frameworks, libraries, and tooling will be listed here.</p>
+                  <p>## License</p>
+                  <p>License details will appear here.</p>
+                  <p>## Author</p>
+                  <p>Author information will appear here.</p>
                 </div>
               </div>
             </WorkspacePanel>
