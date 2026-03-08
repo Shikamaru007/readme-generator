@@ -1,4 +1,11 @@
 import type { ReactNode } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type WorkspacePanelProps = {
   eyebrow: string;
@@ -14,17 +21,17 @@ export function WorkspacePanel({
   children,
 }: WorkspacePanelProps) {
   return (
-    <section className="flex min-h-[420px] flex-col rounded-[28px] p-6 sm:p-7">
-      <div className="mb-4 space-y-1">
+    <Card className="flex min-h-105 flex-col">
+      <CardHeader className="pb-4">
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-accent">
           {eyebrow}
         </p>
-        <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-[1.35rem]">
+        <CardTitle className="sm:text-[1.35rem]">
           {title}
-        </h2>
-        <p className="max-w-xl text-sm leading-5.5 text-muted">{description}</p>
-      </div>
-      <div className="flex flex-1 flex-col">{children}</div>
-    </section>
+        </CardTitle>
+        <CardDescription className="max-w-xl">{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-1 flex-col">{children}</CardContent>
+    </Card>
   );
 }

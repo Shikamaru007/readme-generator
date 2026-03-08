@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa;
-  --foreground: #555555;
-  --surface: rgba(255, 255, 255, 0.72);
-  --border: #d6d1c7;
-  --muted: #7d766d;
+  --background: #FAFAFA;
+  --foreground: #1f1a17;
+  --surface: #ffffff;
+  --border: rgba(214, 209, 199, 0.45);
+  --muted: #756d65;
   --accent: #6d28d9;
 }
 
@@ -24,6 +24,8 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-satoshi), sans-serif;
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
 }
 
 * {

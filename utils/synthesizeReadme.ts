@@ -1,4 +1,13 @@
-import { generateReadme, type ReadmeProjectData } from "@/utils/generateReadme";
+import {
+  GitHubRepositoryError,
+  inspectGitHubRepository,
+  type InspectedRepository,
+} from "@/utils/githubRepoInspection";
+import {
+  AIConfigurationError,
+  generateReadmeWithAI,
+} from "@/utils/aiReadmeGenerator";
+import { generateFallbackReadme } from "@/utils/fallbackReadmeGenerator";
 
 export type GenerationMode = "github" | "manual";
 
@@ -14,234 +23,183 @@ export type ReadmeGenerationInput = {
   author?: string;
 };
 
-type GitHubRepoSummary = {
-  owner: string;
-  name: string;
-  htmlUrl: string;
+type ReadmeProjectData = {
+  projectName: string;
   description: string;
-  homepage: string;
-  topics: string[];
+  installation: string;
+  usage: string;
+  techStack: string;
   license: string;
+  author: string;
 };
 
-export async function synthesizeReadme(input: ReadmeGenerationInput) {
-  const repoSummary = await getGitHubRepoSummary(input.repositoryUrl);
-  const projectData = buildReadmeProjectData(input, repoSummary);
+export class ReadmeGenerationError extends Error {
+  statusCode: number;
 
-  return {
-    markdown: generateReadme(projectData),
-    projectName: projectData.projectName,
-  };
+  constructor(message: string, statusCode = 500) {
+    super(message);
+    this.name = "ReadmeGenerationError";
+    this.statusCode = statusCode;
+  }
 }
 
-function buildReadmeProjectData(
+export async function synthesizeReadme(input: ReadmeGenerationInput) {
+  try {
+    const inspectedRepository = await maybeInspectRepository(input);
+    let aiResult: { markdown: string; notice: string | null };
+
+    try {
+      const generated = await generateReadmeWithAI({
+        input,
+        repository: inspectedRepository,
+      });
+
+      aiResult = {
+        markdown: generated.markdown,
+        notice: null,
+      };
+    } catch (error) {
+      if (!(error instanceof AIConfigurationError)) {
+        throw error;
+      }
+
+      aiResult = {
+        markdown: generateFallbackReadme({
+          input,
+          repository: inspectedRepository,
+        }),
+        notice:
+          "AI generation is temporarily unavailable, so the README was assembled from repository evidence and your provided details.",
+      };
+    }
+
+    const fallbackProjectData = buildFallbackProjectData(input, inspectedRepository);
+
+    return {
+      markdown: aiResult.markdown,
+      projectName: fallbackProjectData.projectName,
+      sourceData: buildSourceData(inspectedRepository, fallbackProjectData),
+      notice: aiResult.notice,
+    };
+  } catch (error) {
+    if (
+      error instanceof ReadmeGenerationError ||
+      error instanceof GitHubRepositoryError ||
+      error instanceof AIConfigurationError
+    ) {
+      throw new ReadmeGenerationError(error.message, error.statusCode);
+    }
+
+    throw new ReadmeGenerationError(
+      "The README could not be generated right now. Try again in a moment.",
+      500,
+    );
+  }
+}
+
+async function maybeInspectRepository(input: ReadmeGenerationInput) {
+  if (input.repositoryUrl) {
+    return inspectGitHubRepository(input.repositoryUrl);
+  }
+
+  if (input.mode === "github") {
+    throw new ReadmeGenerationError(
+      "Enter a valid GitHub repository URL in the format https://github.com/{owner}/{repo}.",
+      400,
+    );
+  }
+
+  return null;
+}
+
+function buildFallbackProjectData(
   input: ReadmeGenerationInput,
-  repoSummary: GitHubRepoSummary | null,
+  repository: InspectedRepository | null,
 ): ReadmeProjectData {
   const projectName =
-    sanitize(input.projectName) ||
-    repoSummary?.name ||
-    deriveProjectNameFromRepoUrl(input.repositoryUrl) ||
-    "Project Name";
+    sanitize(input.projectName) || repository?.repository.name || "Project Name";
 
   return {
     projectName,
     description:
-      sanitize(input.description) || buildDescription(projectName, input, repoSummary),
+      sanitize(input.description) ||
+      repository?.repository.description ||
+      "Project description to be refined from repository analysis.",
     installation:
       sanitize(input.installation) ||
-      buildInstallation(projectName, input.repositoryUrl, repoSummary),
-    usage: sanitize(input.usage) || buildUsage(projectName, input, repoSummary),
-    techStack: sanitize(input.techStack) || buildTechStack(input, repoSummary),
+      buildInstallation(projectName, repository?.repository.htmlUrl),
+    usage:
+      sanitize(input.usage) ||
+      "Run the project using its main development command and review the repository for workflow details.",
+    techStack:
+      sanitize(input.techStack) ||
+      buildTechStack(
+        repository?.repository.primaryLanguage,
+        repository?.repository.topics ?? [],
+      ),
     license:
       sanitize(input.license) ||
-      repoSummary?.license ||
+      repository?.repository.license ||
       "Add your preferred license details here.",
     author:
       sanitize(input.author) ||
-      (repoSummary
-        ? `[@${repoSummary.owner}](https://github.com/${repoSummary.owner})`
+      (repository
+        ? `[@${repository.repository.owner}](https://github.com/${repository.repository.owner})`
         : "Add the project author or maintainer here."),
   };
 }
 
-function buildDescription(
-  projectName: string,
-  input: ReadmeGenerationInput,
-  repoSummary: GitHubRepoSummary | null,
+function buildSourceData(
+  repository: InspectedRepository | null,
+  fallbackProjectData: ReadmeProjectData,
 ) {
-  if (repoSummary?.description) {
-    const sentence = repoSummary.description.endsWith(".")
-      ? repoSummary.description
-      : `${repoSummary.description}.`;
-    return `${sentence}\n\nThis README draft was generated from the repository metadata and the details currently available.`;
+  if (!repository) {
+    return null;
   }
 
-  const techStack = sanitize(input.techStack);
-  const usage = sanitize(input.usage);
-
-  if (techStack && usage) {
-    return `${projectName} is a ${techStack} project intended to help users ${lowercaseFirst(usage)}.`;
-  }
-
-  if (techStack) {
-    return `${projectName} is a ${techStack} project with a generated starter README that can be refined as implementation details become clearer.`;
-  }
-
-  if (usage) {
-    return `${projectName} is a project designed to help users ${lowercaseFirst(usage)}. This draft README captures the most likely setup and usage flow from the information provided so far.`;
-  }
-
-  return `${projectName} is a software project with a generated starter README. Expand these sections with product-specific details as development progresses.`;
+  return {
+    projectName: repository.repository.name,
+    description: repository.repository.description || fallbackProjectData.description,
+    techStack: buildTechStack(
+      repository.repository.primaryLanguage,
+      repository.repository.topics,
+    ),
+    license: repository.repository.license || fallbackProjectData.license,
+    repositoryUrl: repository.repository.htmlUrl,
+    author: `@${repository.repository.owner}`,
+  };
 }
 
-function buildInstallation(
-  projectName: string,
-  repositoryUrl: string | undefined,
-  repoSummary: GitHubRepoSummary | null,
-) {
-  const repoUrl = repositoryUrl || repoSummary?.htmlUrl;
-  const directoryName = repoSummary?.name || toKebabCase(projectName);
-  const cloneSteps = repoUrl
+function buildInstallation(projectName: string, repositoryUrl?: string) {
+  const directoryName = toKebabCase(projectName);
+  const cloneBlock = repositoryUrl
     ? `\`\`\`bash
-git clone ${repoUrl}
+git clone ${repositoryUrl}
 cd ${directoryName}
 npm install
 \`\`\``
     : `\`\`\`bash
-# clone or download the source code
+# clone or download the project source
 cd ${directoryName}
 npm install
 \`\`\``;
 
-  return `1. Get the project source locally.\n2. Install the dependencies.\n3. Run the app using the workflow described in the Usage section.\n\n${cloneSteps}`;
+  return `1. Get the project source locally.\n2. Install the dependencies.\n3. Run the main development workflow.\n\n${cloneBlock}`;
 }
 
-function buildUsage(
-  projectName: string,
-  input: ReadmeGenerationInput,
-  repoSummary: GitHubRepoSummary | null,
-) {
-  if (repoSummary?.homepage) {
-    return `Install the project, start the local environment, and use ${repoSummary.homepage} as the primary reference for the live experience or deployment target.`;
-  }
+function buildTechStack(primaryLanguage: string | undefined, topics: string[]) {
+  const entries = [sanitize(primaryLanguage), ...topics.map(formatTopic)].filter(Boolean);
 
-  if (input.mode === "github" && repoSummary) {
-    return `After installation, run the project's primary development command and review the repository at ${repoSummary.htmlUrl} for source structure and contribution context.`;
-  }
-
-  return `After installation, run the main development or start command for ${projectName} and validate the expected behavior in your local environment. Add exact commands and examples as the workflow becomes stable.`;
-}
-
-function buildTechStack(
-  input: ReadmeGenerationInput,
-  repoSummary: GitHubRepoSummary | null,
-) {
-  if (repoSummary?.topics.length) {
-    return repoSummary.topics.map(formatTopic).join(", ");
-  }
-
-  if (input.mode === "github") {
-    return "Document the primary framework, language, and tooling used by this repository.";
-  }
-
-  return "Add the primary frameworks, languages, libraries, and deployment tooling used in this project.";
-}
-
-async function getGitHubRepoSummary(repositoryUrl: string | undefined) {
-  const parsed = parseGitHubRepositoryUrl(repositoryUrl);
-
-  if (!parsed) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(
-      `https://api.github.com/repos/${parsed.owner}/${parsed.repo}`,
-      {
-        headers: {
-          Accept: "application/vnd.github+json",
-          "User-Agent": "readme-generator",
-        },
-        next: { revalidate: 3600 },
-      },
-    );
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const repo = (await response.json()) as {
-      owner?: { login?: string };
-      name?: string;
-      html_url?: string;
-      description?: string | null;
-      homepage?: string | null;
-      topics?: string[];
-      license?: { spdx_id?: string | null; name?: string | null } | null;
-    };
-
-    return {
-      owner: repo.owner?.login || parsed.owner,
-      name: repo.name || parsed.repo,
-      htmlUrl: repo.html_url || `https://github.com/${parsed.owner}/${parsed.repo}`,
-      description: sanitize(repo.description),
-      homepage: sanitize(repo.homepage),
-      topics: Array.isArray(repo.topics) ? repo.topics : [],
-      license:
-        sanitize(repo.license?.spdx_id) || sanitize(repo.license?.name),
-    };
-  } catch {
-    return null;
-  }
-}
-
-function parseGitHubRepositoryUrl(repositoryUrl: string | undefined) {
-  if (!repositoryUrl) {
-    return null;
-  }
-
-  try {
-    const url = new URL(repositoryUrl.trim());
-
-    if (url.hostname !== "github.com") {
-      return null;
-    }
-
-    const segments = url.pathname.split("/").filter(Boolean);
-
-    if (segments.length < 2) {
-      return null;
-    }
-
-    return {
-      owner: segments[0],
-      repo: segments[1].replace(/\.git$/i, ""),
-    };
-  } catch {
-    return null;
-  }
-}
-
-function deriveProjectNameFromRepoUrl(repositoryUrl: string | undefined) {
-  const parsed = parseGitHubRepositoryUrl(repositoryUrl);
-
-  if (!parsed) {
-    return "";
-  }
-
-  return parsed.repo
-    .split(/[-_]/)
-    .filter(Boolean)
-    .map(capitalizeWord)
-    .join(" ");
+  return entries.length
+    ? Array.from(new Set(entries)).join(", ")
+    : "Add the primary frameworks, languages, libraries, and tooling used in this project.";
 }
 
 function formatTopic(topic: string) {
   return topic
     .split(/[-_]/)
     .filter(Boolean)
-    .map(capitalizeWord)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 }
 
@@ -250,14 +208,6 @@ function toKebabCase(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "") || "project";
-}
-
-function capitalizeWord(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function lowercaseFirst(value: string) {
-  return value.charAt(0).toLowerCase() + value.slice(1);
 }
 
 function sanitize(value: string | null | undefined) {

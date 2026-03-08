@@ -3,6 +3,7 @@ import {
   synthesizeReadme,
   type GenerationMode,
   type ReadmeGenerationInput,
+  ReadmeGenerationError,
 } from "@/utils/synthesizeReadme";
 
 type GenerateReadmeRequest = {
@@ -26,7 +27,14 @@ export async function POST(request: Request) {
     const result = await synthesizeReadme(input);
 
     return NextResponse.json(result);
-  } catch {
+  } catch (error) {
+    if (error instanceof ReadmeGenerationError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode },
+      );
+    }
+
     return NextResponse.json(
       { error: "Unable to generate the README right now." },
       { status: 500 },
