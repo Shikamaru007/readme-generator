@@ -8,6 +8,18 @@ export type ReadmeProjectData = {
   author: string;
 };
 
+const SECTION_FIELDS: Array<{
+  title: string;
+  key: Exclude<keyof ReadmeProjectData, "projectName">;
+}> = [
+  { title: "Description", key: "description" },
+  { title: "Installation", key: "installation" },
+  { title: "Usage", key: "usage" },
+  { title: "Tech Stack", key: "techStack" },
+  { title: "License", key: "license" },
+  { title: "Author", key: "author" },
+];
+
 export function generateReadme({
   projectName,
   description,
@@ -17,19 +29,31 @@ export function generateReadme({
   license,
   author,
 }: ReadmeProjectData): string {
+  const normalizedProjectName = projectName.trim() || "Untitled Project";
+  const contentByField: Omit<ReadmeProjectData, "projectName"> = {
+    description,
+    installation,
+    usage,
+    techStack,
+    license,
+    author,
+  };
   const sections = [
-    `# ${projectName.trim()}`,
-    createSection("Description", description),
-    createSection("Installation", installation),
-    createSection("Usage", usage),
-    createSection("Tech Stack", techStack),
-    createSection("License", license),
-    createSection("Author", author),
+    `# ${normalizedProjectName}`,
+    ...SECTION_FIELDS.map(({ title, key }) =>
+      createSection(title, contentByField[key]),
+    ).filter(Boolean),
   ];
 
   return sections.join("\n\n").trim();
 }
 
-function createSection(title: string, content: string): string {
-  return `## ${title}\n\n${content.trim()}`;
+function createSection(title: string, content: string): string | null {
+  const normalizedContent = content.trim();
+
+  if (!normalizedContent) {
+    return null;
+  }
+
+  return `## ${title}\n\n${normalizedContent}`;
 }
