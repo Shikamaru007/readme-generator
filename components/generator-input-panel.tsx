@@ -21,8 +21,9 @@ type GeneratorInputPanelProps = {
   formData: GeneratorFormData;
   onModeChange: (mode: Mode) => void;
   onFormDataChange: (formData: GeneratorFormData) => void;
-  onGenerate: () => void;
+  onGenerate: () => void | Promise<void>;
   onClear: () => void;
+  isGenerating: boolean;
 };
 
 export function GeneratorInputPanel({
@@ -32,6 +33,7 @@ export function GeneratorInputPanel({
   onFormDataChange,
   onGenerate,
   onClear,
+  isGenerating,
 }: GeneratorInputPanelProps) {
   const updateField = <K extends keyof GeneratorFormData>(
     key: K,
@@ -88,14 +90,16 @@ export function GeneratorInputPanel({
       <div className="flex flex-wrap gap-3 pt-5">
         <button
           type="submit"
-          className="rounded-full bg-accent px-5 py-3 text-sm font-medium text-white transition hover:brightness-105"
+          disabled={isGenerating}
+          className="rounded-full bg-accent px-5 py-3 text-sm font-medium text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          Generate README
+          {isGenerating ? "Generating..." : "Generate README"}
         </button>
         <button
           type="button"
           onClick={onClear}
-          className="rounded-full border border-border bg-white px-5 py-3 text-sm font-medium text-foreground transition hover:border-accent hover:text-accent"
+          disabled={isGenerating}
+          className="rounded-full border border-border bg-white px-5 py-3 text-sm font-medium text-foreground transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-70"
         >
           Clear
         </button>
@@ -128,8 +132,8 @@ function GitHubGeneratorForm({
         />
       </label>
       <p className="text-sm leading-6 text-muted">
-        GitHub import is not connected yet, so the preview uses manual project
-        details when you generate the README.
+        Paste a public GitHub repository URL and the generator will use the
+        repository metadata as source material for the README draft.
       </p>
     </div>
   );
