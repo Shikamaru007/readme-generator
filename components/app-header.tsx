@@ -10,6 +10,12 @@ export function AppHeader() {
           <p className="flex items-center text-[1.4rem] font-bold leading-none tracking-tight text-foreground sm:text-[1.6rem]">
             ReadGen
           </p>
+          <span
+            className="text-[0.72rem] font-medium tracking-[0.08em] text-muted"
+            style={{ fontFamily: "var(--font-space-mono), monospace" }}
+          >
+            v1.0
+          </span>
         </div>
         <ThemeToggle />
       </div>

@@ -72,6 +72,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-satoshi), sans-serif;
   min-height: 100vh;
+  scroll-behavior: smooth;
   text-rendering: optimizeLegibility;
   transition:
     background-color 180ms ease,
@@ -80,6 +81,10 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 ::selection {

@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import {
   GeneratorInputPanel,
   type GeneratorFormData,
@@ -46,6 +46,28 @@ export function ReadmeGeneratorWorkspace() {
   const [errorMessage, setErrorMessage] = useState("");
   const [noticeMessage, setNoticeMessage] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
+  const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!isPreviewExpanded) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsPreviewExpanded(false);
+      }
+    };
+
+    const currentOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = currentOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isPreviewExpanded]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -180,10 +202,19 @@ export function ReadmeGeneratorWorkspace() {
               </div>
               <div className="flex items-center gap-2">
                 <IconActionButton
+                  label="Expand README preview"
+                  onClick={() => setIsPreviewExpanded(true)}
+                  disabled={isGenerating}
+                  variant="secondary"
+                >
+                  <ExpandIcon />
+                </IconActionButton>
+                <IconActionButton
                   label="Copy README"
                   onClick={handleCopy}
                   disabled={isGenerating}
                   variant="secondary"
+                  tooltipSide="bottom"
                 >
                   <CopyIcon />
                 </IconActionButton>
@@ -192,6 +223,7 @@ export function ReadmeGeneratorWorkspace() {
                   onClick={handleDownload}
                   disabled={isGenerating}
                   variant="primary"
+                  tooltipSide="bottom"
                 >
                   <DownloadIcon />
                 </IconActionButton>
@@ -215,16 +247,80 @@ export function ReadmeGeneratorWorkspace() {
                   {noticeMessage}
                 </p>
               ) : null}
-              <pre
-                className="min-h-80 flex-1 overflow-auto rounded-[26px] bg-editor-surface p-4 text-[0.84rem] leading-6 text-editor-foreground whitespace-pre-wrap break-all"
-                style={{ fontFamily: "var(--font-space-mono), monospace" }}
-              >
-                {generatedReadme}
-              </pre>
+              <div className="relative">
+                <pre
+                  className="max-h-105 min-h-80 overflow-auto rounded-[26px] bg-editor-surface p-4 text-[0.84rem] leading-6 text-editor-foreground whitespace-pre-wrap break-all"
+                  style={{ fontFamily: "var(--font-space-mono), monospace" }}
+                >
+                  {generatedReadme}
+                </pre>
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 rounded-b-[26px] bg-linear-to-t from-surface-subtle to-transparent" />
+              </div>
             </div>
           </div>
         </div>
       </WorkspacePanel>
+      {isPreviewExpanded ? (
+        <div
+          className="fixed inset-0 z-40 flex h-screen w-screen flex-col bg-surface/94 backdrop-blur-sm"
+          onClick={() => setIsPreviewExpanded(false)}
+        >
+          <div
+            className="flex h-full w-full flex-col overflow-auto"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 px-5 py-4 sm:px-6">
+              <div className="min-w-0 opacity-0">
+                <p className="text-base font-semibold text-foreground">{previewTitle}</p>
+                <p className="mt-1 text-xs font-medium leading-4 text-muted">
+                  Fullscreen README preview
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <IconActionButton
+                  label="Copy README"
+                  onClick={handleCopy}
+                  disabled={isGenerating}
+                  variant="secondary"
+                  tooltipSide="bottom"
+                  tooltipOffset={18}
+                >
+                  <CopyIcon />
+                </IconActionButton>
+                <IconActionButton
+                  label="Download README.md"
+                  onClick={handleDownload}
+                  disabled={isGenerating}
+                  variant="primary"
+                  tooltipSide="bottom"
+                  tooltipOffset={18}
+                >
+                  <DownloadIcon />
+                </IconActionButton>
+                <IconActionButton
+                  label="Close fullscreen preview"
+                  onClick={() => setIsPreviewExpanded(false)}
+                  variant="secondary"
+                  tooltipSide="bottom"
+                  tooltipOffset={18}
+                >
+                  <CloseIcon />
+                </IconActionButton>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto px-5 pb-8 pt-2 sm:px-8 sm:pb-10">
+              <div className="mx-auto w-full max-w-3xl">
+                <pre
+                  className="whitespace-pre-wrap break-all text-[0.92rem] leading-7 text-editor-foreground"
+                  style={{ fontFamily: "var(--font-space-mono), monospace" }}
+                >
+                  {generatedReadme}
+                </pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -235,6 +331,8 @@ type IconActionButtonProps = {
   disabled?: boolean;
   children: ReactNode;
   variant: "primary" | "secondary";
+  tooltipSide?: "top" | "bottom" | "left" | "right";
+  tooltipOffset?: number;
 };
 
 function IconActionButton({
@@ -243,9 +341,11 @@ function IconActionButton({
   disabled,
   children,
   variant,
+  tooltipSide = "top",
+  tooltipOffset,
 }: IconActionButtonProps) {
   return (
-    <Tooltip content={label}>
+    <Tooltip content={label} side={tooltipSide} offset={tooltipOffset}>
       <Button
         onClick={onClick}
         aria-label={label}
@@ -278,6 +378,26 @@ function CopyIcon() {
   );
 }
 
+function ExpandIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M15 4h5v5" />
+      <path d="M14 10 20 4" />
+      <path d="M9 20H4v-5" />
+      <path d="m4 20 6-6" />
+    </svg>
+  );
+}
+
 function DownloadIcon() {
   return (
     <svg
@@ -294,5 +414,23 @@ function DownloadIcon() {
       <path d="m8 10 4 4 4-4" />
       <path d="M5 19h14" />
     </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 6 18 18" />
+      <path d="M18 6 6 18" />
+     </svg>
   );
 }

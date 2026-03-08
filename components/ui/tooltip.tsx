@@ -20,6 +20,7 @@ type TooltipProps = {
   content: string;
   children: ReactNode;
   side?: TooltipSide;
+  offset?: number;
 };
 
 type Position = {
@@ -33,6 +34,7 @@ export function Tooltip({
   content,
   children,
   side = "top",
+  offset = SIDE_OFFSET,
 }: TooltipProps) {
   const tooltipId = useId();
   const triggerRef = useRef<HTMLSpanElement | null>(null);
@@ -62,23 +64,23 @@ export function Tooltip({
       let left = 0;
 
       if (side === "top") {
-        top = triggerRect.top - tooltipRect.height - SIDE_OFFSET;
+        top = triggerRect.top - tooltipRect.height - offset;
         left = triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
       }
 
       if (side === "bottom") {
-        top = triggerRect.bottom + SIDE_OFFSET;
+        top = triggerRect.bottom + offset;
         left = triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
       }
 
       if (side === "left") {
         top = triggerRect.top + triggerRect.height / 2 - tooltipRect.height / 2;
-        left = triggerRect.left - tooltipRect.width - SIDE_OFFSET;
+        left = triggerRect.left - tooltipRect.width - offset;
       }
 
       if (side === "right") {
         top = triggerRect.top + triggerRect.height / 2 - tooltipRect.height / 2;
-        left = triggerRect.right + SIDE_OFFSET;
+        left = triggerRect.right + offset;
       }
 
       const margin = 8;
@@ -100,7 +102,7 @@ export function Tooltip({
       window.removeEventListener("scroll", updatePosition, true);
       window.removeEventListener("resize", updatePosition);
     };
-  }, [isVisible, side]);
+  }, [isVisible, offset, side]);
 
   const child =
     isValidElement(children)

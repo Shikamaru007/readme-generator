@@ -14,7 +14,7 @@ const buttonVariants = cva(
         ghost:
           "border border-border bg-button-subtle-soft text-muted hover:bg-button-subtle-hover hover:text-foreground",
         icon:
-          "border border-border bg-button-subtle text-accent hover:bg-button-subtle-hover",
+          "border border-border bg-button-subtle-soft text-muted hover:bg-button-subtle-hover hover:text-foreground",
         iconPrimary: "bg-accent text-white hover:bg-[#5b21b6]",
       },
       size: {
