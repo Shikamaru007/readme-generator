@@ -8,11 +8,13 @@ type GenerateAiReadmeParams = {
 
 export class AIConfigurationError extends Error {
   statusCode: number;
+  fallbackNotice: string;
 
-  constructor(message: string, statusCode = 500) {
+  constructor(message: string, statusCode = 500, fallbackNotice?: string) {
     super(message);
     this.name = "AIConfigurationError";
     this.statusCode = statusCode;
+    this.fallbackNotice = fallbackNotice || message;
   }
 }
 
@@ -20,15 +22,7 @@ export async function generateReadmeWithAI({
   input,
   repository,
 }: GenerateAiReadmeParams) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-
-  if (!apiKey) {
-    throw new AIConfigurationError(
-      "GEMINI_API_KEY is missing. Add it to .env.local before using AI README generation.",
-      500,
-    );
-  }
+  const { apiKey, model } = getGeminiConfig();
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
@@ -75,11 +69,12 @@ export async function generateReadmeWithAI({
         }
       | null;
     const upstreamMessage = errorPayload?.error?.message?.trim();
+    const details = classifyGeminiError(response.status, model, upstreamMessage);
 
     throw new AIConfigurationError(
-      upstreamMessage ||
-        "The AI README generator could not produce a result right now. Try again in a moment.",
+      details.logMessage,
       response.status >= 400 && response.status < 600 ? response.status : 502,
+      details.userMessage,
     );
   }
 
@@ -99,11 +94,83 @@ export async function generateReadmeWithAI({
     throw new AIConfigurationError(
       "The AI README generator returned an empty result.",
       502,
+      "The AI service returned an empty response, so the README was assembled with the fallback generator.",
     );
   }
 
   return {
     markdown,
+  };
+}
+
+export function getGeminiConfig() {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
+  if (!apiKey) {
+    throw new AIConfigurationError(
+      "No Gemini API key was found in the server environment.",
+      500,
+      "AI generation is unavailable because the deployment is missing `GEMINI_API_KEY` or `GOOGLE_API_KEY`, so the fallback generator was used.",
+    );
+  }
+
+  return { apiKey, model };
+}
+
+function classifyGeminiError(
+  statusCode: number,
+  model: string,
+  upstreamMessage?: string,
+) {
+  const normalizedMessage = upstreamMessage?.toLowerCase() || "";
+
+  if (statusCode === 400 && normalizedMessage.includes("api key")) {
+    return {
+      logMessage: upstreamMessage || "Gemini rejected the API key.",
+      userMessage:
+        "AI generation is unavailable because the configured Gemini API key was rejected, so the fallback generator was used.",
+    };
+  }
+
+  if (statusCode === 400 && normalizedMessage.includes("model")) {
+    return {
+      logMessage: upstreamMessage || `Gemini model '${model}' is not available.`,
+      userMessage:
+        `AI generation is unavailable because the configured Gemini model \`${model}\` is not available to this deployment, so the fallback generator was used.`,
+    };
+  }
+
+  if (statusCode === 403) {
+    return {
+      logMessage: upstreamMessage || "Gemini access was forbidden.",
+      userMessage:
+        "AI generation is unavailable because the Gemini API key does not have permission for this request, so the fallback generator was used.",
+    };
+  }
+
+  if (statusCode === 404) {
+    return {
+      logMessage: upstreamMessage || `Gemini model '${model}' was not found.`,
+      userMessage:
+        `AI generation is unavailable because the configured Gemini model \`${model}\` could not be found, so the fallback generator was used.`,
+    };
+  }
+
+  if (statusCode === 429) {
+    return {
+      logMessage: upstreamMessage || "Gemini rate limit hit.",
+      userMessage:
+        "AI generation is temporarily rate-limited, so the fallback generator was used for this request.",
+    };
+  }
+
+  return {
+    logMessage:
+      upstreamMessage ||
+      "The AI README generator could not produce a result right now. Try again in a moment.",
+    userMessage:
+      "AI generation is temporarily unavailable, so the README was assembled from repository evidence and your provided details.",
   };
 }
 

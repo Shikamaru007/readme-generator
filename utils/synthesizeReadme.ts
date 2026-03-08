@@ -63,13 +63,17 @@ export async function synthesizeReadme(input: ReadmeGenerationInput) {
         throw error;
       }
 
+      console.error("AI README generation failed; using fallback generator.", {
+        message: error.message,
+        statusCode: error.statusCode,
+      });
+
       aiResult = {
         markdown: generateFallbackReadme({
           input,
           repository: inspectedRepository,
         }),
-        notice:
-          "AI generation is temporarily unavailable, so the README was assembled from repository evidence and your provided details.",
+        notice: error.fallbackNotice,
       };
     }
 
