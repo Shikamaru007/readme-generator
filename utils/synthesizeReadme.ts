@@ -124,7 +124,7 @@ function buildFallbackProjectData(
     description:
       sanitize(input.description) ||
       repository?.repository.description ||
-      "Project description to be refined from repository analysis.",
+      "Add a short description for the project.",
     installation:
       sanitize(input.installation) ||
       buildInstallation(projectName, repository?.repository.htmlUrl),
@@ -140,12 +140,12 @@ function buildFallbackProjectData(
     license:
       sanitize(input.license) ||
       repository?.repository.license ||
-      "Add your preferred license details here.",
+      "Add the project license here.",
     author:
       sanitize(input.author) ||
       (repository
         ? `[@${repository.repository.owner}](https://github.com/${repository.repository.owner})`
-        : "Add the project author or maintainer here."),
+        : "Add your name or maintainer details here."),
   };
 }
 
@@ -192,7 +192,7 @@ function buildTechStack(primaryLanguage: string | undefined, topics: string[]) {
 
   return entries.length
     ? Array.from(new Set(entries)).join(", ")
-    : "Add the primary frameworks, languages, libraries, and tooling used in this project.";
+    : "Add the main frameworks, languages, libraries, and tooling used in the project.";
 }
 
 function formatTopic(topic: string) {

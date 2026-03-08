@@ -111,6 +111,12 @@ function buildSystemInstruction() {
   return [
     "You write high-quality README.md files for software repositories.",
     "Use repository evidence first, manual user details second.",
+    "Write the README as if the project owner or maintainer wrote it.",
+    "Use natural first-person project-owner language when appropriate, such as 'I built', 'we use', 'this project includes', or direct instructional language.",
+    "Do not mention AI, generation, prompts, repository analysis, source material, or that the text was produced automatically.",
+    "Do not sound generic, robotic, or overly promotional.",
+    "Prefer confident, clear documentation language over meta explanations.",
+    "When information is missing, omit unsupported claims instead of filling the README with placeholders or obvious filler.",
     "Do not invent features, commands, architecture, or setup steps that are not supported by the repository context.",
     "If something is uncertain, state it cautiously and keep the README useful.",
     "Return only markdown for the README body.",
@@ -139,6 +145,9 @@ function buildUserPrompt(
 
   return [
     "Generate a polished README.md for this project.",
+    "The final README must read like the maintainer wrote it for real users.",
+    "Do not use wording like 'this README was generated', 'the inspected repository', 'the available source material', 'based on the provided context', or similar meta phrasing.",
+    "Avoid placeholder language unless a section would otherwise be empty; if evidence is weak, keep the wording simple and neutral.",
     "",
     "Manual user context:",
     manualContext,

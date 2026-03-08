@@ -33,7 +33,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+  try {
+    const storedTheme = localStorage.getItem("theme");
+    const theme = storedTheme === "light" || storedTheme === "dark"
+      ? storedTheme
+      : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.dataset.theme = theme;
+  } catch {}
+})();`,
+          }}
+        />
+      </head>
       <body
         className={`${satoshi.variable} ${spaceMono.variable} bg-background text-foreground antialiased`}
       >

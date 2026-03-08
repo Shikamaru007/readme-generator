@@ -7,6 +7,7 @@ import {
   type Mode,
 } from "@/components/generator-input-panel";
 import { Button } from "@/components/ui/button";
+import { Tooltip } from "@/components/ui/tooltip";
 import { WorkspacePanel } from "@/components/workspace-panel";
 
 const EMPTY_FORM_DATA: GeneratorFormData = {
@@ -143,7 +144,7 @@ export function ReadmeGeneratorWorkspace() {
   };
 
   return (
-    <section className="grid gap-5 lg:grid-cols-[1.1fr_1.5fr]">
+    <section className="grid items-start gap-5 lg:grid-cols-[1.1fr_1.5fr]">
       <WorkspacePanel
         eyebrow="Input"
         title="Project details"
@@ -164,14 +165,14 @@ export function ReadmeGeneratorWorkspace() {
         title="README preview"
         description="The preview shows generated markdown based on GitHub metadata or the manual details currently provided."
       >
-        <div className="flex h-full flex-1 flex-col gap-3 rounded-[30px] bg-white">
-          <div className="rounded-3xl bg-[#fbfaf8] px-4 py-4 sm:px-5">
+        <div className="flex flex-col gap-3 rounded-[30px] bg-surface">
+          <div className="rounded-3xl bg-surface-muted px-4 py-4 sm:px-5">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-foreground">
                   {previewTitle}
                 </p>
-                <div className="mt-0.5 text-xs text-muted">
+                <div className="mt-0.5 text-xs font-medium leading-4 text-muted">
                   <p>
                     {isGenerating ? "Generating README..." : "Generated markdown preview"}
                   </p>
@@ -197,25 +198,25 @@ export function ReadmeGeneratorWorkspace() {
               </div>
             </div>
           </div>
-          <div className="flex flex-1 flex-col rounded-[26px] bg-[#fdfcfb] p-4">
+          <div className="flex flex-col rounded-[26px] bg-surface-subtle p-4">
             <div className="min-w-0">
               {copyMessage ? (
-                <p className="mb-4 text-xs text-muted">
-                  {copyMessage}
-                </p>
+                  <p className="mb-4 text-xs font-medium leading-4 text-muted">
+                    {copyMessage}
+                  </p>
               ) : null}
               {errorMessage ? (
-                <p className="mb-4 rounded-2xl bg-[rgba(255,232,232,0.88)] px-4 py-3 text-sm text-[#9a3b3b]">
+                <p className="mb-4 rounded-2xl bg-danger-surface px-4 py-3 text-sm text-danger-foreground">
                   {errorMessage}
                 </p>
               ) : null}
               {noticeMessage ? (
-                <p className="mb-4 rounded-2xl bg-[rgba(255,249,232,0.92)] px-4 py-3 text-sm text-[#6f5a16]">
+                <p className="mb-4 rounded-2xl bg-warning-surface px-4 py-3 text-sm text-warning-foreground">
                   {noticeMessage}
                 </p>
               ) : null}
               <pre
-                className="min-h-80 flex-1 overflow-auto rounded-[26px] bg-[#f8f6f3] p-4 text-[0.84rem] leading-6 text-[#524b45] whitespace-pre-wrap break-all"
+                className="min-h-80 flex-1 overflow-auto rounded-[26px] bg-editor-surface p-4 text-[0.84rem] leading-6 text-editor-foreground whitespace-pre-wrap break-all"
                 style={{ fontFamily: "var(--font-space-mono), monospace" }}
               >
                 {generatedReadme}
@@ -244,17 +245,18 @@ function IconActionButton({
   variant,
 }: IconActionButtonProps) {
   return (
-    <Button
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      disabled={disabled}
-      type="button"
-      variant={variant === "primary" ? "iconPrimary" : "icon"}
-      size="icon"
-    >
-      {children}
-    </Button>
+    <Tooltip content={label}>
+      <Button
+        onClick={onClick}
+        aria-label={label}
+        disabled={disabled}
+        type="button"
+        variant={variant === "primary" ? "iconPrimary" : "icon"}
+        size="icon"
+      >
+        {children}
+      </Button>
+    </Tooltip>
   );
 }
 

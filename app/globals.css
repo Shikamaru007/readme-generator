@@ -1,21 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FAFAFA;
-  --foreground: #1f1a17;
+  --background: #fafafa;
+  --foreground: #2b2520;
   --surface: #ffffff;
+  --surface-muted: #fbfaf8;
+  --surface-subtle: #fdfcfb;
+  --editor-surface: #f8f6f3;
+  --input-surface: #fcfaf6;
   --border: rgba(214, 209, 199, 0.45);
-  --muted: #756d65;
+  --muted: #afafaf;
   --accent: #6d28d9;
+  --button-subtle: rgba(255, 255, 255, 0.78);
+  --button-subtle-soft: rgba(255, 255, 255, 0.56);
+  --button-subtle-hover: #ffffff;
+  --danger-surface: rgba(255, 232, 232, 0.88);
+  --danger-foreground: #9a3b3b;
+  --warning-surface: rgba(255, 249, 232, 0.92);
+  --warning-foreground: #6f5a16;
+  --editor-foreground: #524b45;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --background: #12110f;
+  --foreground: #f6f1ea;
+  --surface: #1a1815;
+  --surface-muted: #211e1a;
+  --surface-subtle: #191714;
+  --editor-surface: #14120f;
+  --input-surface: #201d19;
+  --border: rgba(255, 248, 238, 0.12);
+  --muted: #afafaf;
+  --accent: #8b5cf6;
+  --button-subtle: rgba(255, 255, 255, 0.07);
+  --button-subtle-soft: rgba(255, 255, 255, 0.05);
+  --button-subtle-hover: rgba(255, 255, 255, 0.12);
+  --danger-surface: rgba(106, 36, 36, 0.34);
+  --danger-foreground: #ffb4b4;
+  --warning-surface: rgba(116, 93, 29, 0.32);
+  --warning-foreground: #f8dd8c;
+  --editor-foreground: #ddd5cb;
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-editor-surface: var(--editor-surface);
+  --color-input-surface: var(--input-surface);
   --color-border: var(--border);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-button-subtle: var(--button-subtle);
+  --color-button-subtle-soft: var(--button-subtle-soft);
+  --color-button-subtle-hover: var(--button-subtle-hover);
+  --color-danger-surface: var(--danger-surface);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-warning-surface: var(--warning-surface);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-editor-foreground: var(--editor-foreground);
   --font-sans: var(--font-satoshi);
   --font-mono: var(--font-space-mono);
 }
@@ -26,6 +73,9 @@ body {
   font-family: var(--font-satoshi), sans-serif;
   min-height: 100vh;
   text-rendering: optimizeLegibility;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
 }
 
 * {

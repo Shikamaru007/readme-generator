@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip } from "@/components/ui/tooltip";
 
 export type Mode = "github" | "manual";
 
@@ -62,26 +63,28 @@ export function GeneratorInputPanel({
       >
         <div className="flex flex-wrap items-center gap-3">
           <TabsList>
-            <TabsTrigger
-              value="github"
-              className="w-10 px-0"
-              aria-label="Generate from GitHub"
-              title="Generate from GitHub"
-            >
-              <GitHubIcon />
-              <span className="sr-only">GitHub</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="manual"
-              className="w-10 px-0"
-              aria-label="Manual entry"
-              title="Manual entry"
-            >
-              <ManualEntryIcon />
-              <span className="sr-only">Manual</span>
-            </TabsTrigger>
+            <Tooltip content="Generate from GitHub" side="bottom">
+              <TabsTrigger
+                value="github"
+                className="w-10 px-0"
+                aria-label="Generate from GitHub"
+              >
+                <GitHubIcon />
+                <span className="sr-only">GitHub</span>
+              </TabsTrigger>
+            </Tooltip>
+            <Tooltip content="Manual entry" side="bottom">
+              <TabsTrigger
+                value="manual"
+                className="w-10 px-0"
+                aria-label="Manual entry"
+              >
+                <ManualEntryIcon />
+                <span className="sr-only">Manual</span>
+              </TabsTrigger>
+            </Tooltip>
           </TabsList>
-          <p className="text-xs leading-5 text-muted">
+          <p className="text-xs font-medium leading-4 text-muted">
             {mode === "github"
               ? "Use a public repository as the source."
               : "Write the project details yourself."}
@@ -101,7 +104,7 @@ export function GeneratorInputPanel({
       <div className="flex flex-wrap gap-3 pt-5">
         <Button
           disabled={isGenerating}
-          aria-label={isGenerating ? "Generating README" : "Generate README"}
+          aria-label={isGenerating ? "Generating README" : "Generate"}
         >
           {isGenerating ? (
             <>
@@ -109,7 +112,7 @@ export function GeneratorInputPanel({
               <span className="sr-only">Generating README</span>
             </>
           ) : (
-            "Generate README"
+            "Generate"
           )}
         </Button>
         <Button
@@ -206,7 +209,7 @@ function GitHubGeneratorForm({
           onChange={(event) => onRepositoryUrlChange(event.target.value)}
         />
       </label>
-      <p className="text-sm leading-6 text-muted">
+      <p className="text-sm font-medium leading-5 text-muted">
         Paste a public GitHub repository URL and the generator will use the
         repository metadata as source material for the README draft.
       </p>

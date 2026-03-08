@@ -15,7 +15,7 @@ export function generateFallbackReadme({
   const description =
     sanitize(input.description) ||
     repository?.repository.description ||
-    "Project description is not yet documented in the available source material.";
+    "A short project description can be added here.";
 
   const sections = [
     `# ${projectName}`,
@@ -77,13 +77,13 @@ function createOverview(
 
   if (repositoryDirectories.length) {
     overviewLines.push(
-      `The inspected repository is organized around ${joinWithAnd(repositoryDirectories)}.`,
+      `The project is organized around ${joinWithAnd(repositoryDirectories)}.`,
     );
   }
 
   if (repository?.analysis.entryPoints.length) {
     overviewLines.push(
-      `Likely application entry points include ${repository.analysis.entryPoints.join(", ")}.`,
+      `Main entry points include ${repository.analysis.entryPoints.join(", ")}.`,
     );
   }
 
@@ -131,7 +131,7 @@ function createInstallation(
   const repositoryUrl = repository?.repository.htmlUrl || sanitize(input.repositoryUrl);
   const installCommand =
     repository?.analysis.installCommand ||
-    "Install the project dependencies with the repository's package manager.";
+     "Install the dependencies with the project's package manager.";
 
   const steps = [
     "## Installation",
@@ -171,7 +171,7 @@ function createUsage(
       ? [
           "## Usage",
           "",
-          "Review the detected entry points below and run the repository using its documented workflow.",
+          "Use one of the main entry points below and run the project with the workflow documented in the codebase.",
           "",
           ...repository.analysis.entryPoints.map((entryPoint) => `- ${entryPoint}`),
         ].join("\n")
@@ -185,7 +185,7 @@ function createUsage(
   return [
     "## Usage",
     "",
-    `Run the main project workflow with \`${commandPrefix} ${preferredScript.name}\`.`,
+    `Run the project with \`${commandPrefix} ${preferredScript.name}\`.`,
     "",
     "```bash",
     `${commandPrefix} ${preferredScript.name}`,
@@ -243,7 +243,7 @@ function createConfiguration(repository: InspectedRepository | null) {
   return [
     "## Configuration",
     "",
-    "The repository includes environment-related files. Review them before running the app:",
+    "Review these environment-related files before running the app:",
     "",
     ...repository.analysis.envFiles.map((file) => `- \`${file}\``),
   ].join("\n");
@@ -281,7 +281,7 @@ function createLicense(
   const license =
     sanitize(input.license) ||
     repository?.repository.license ||
-    "No license was detected from the inspected repository files.";
+    "No license has been specified yet.";
 
   return `## License\n\n${license}`;
 }
@@ -294,7 +294,7 @@ function createAuthor(
     sanitize(input.author) ||
     (repository
       ? `[@${repository.repository.owner}](https://github.com/${repository.repository.owner})`
-      : "Project maintainer details were not provided.");
+      : "Add your name or maintainer details here.");
 
   return `## Author\n\n${author}`;
 }

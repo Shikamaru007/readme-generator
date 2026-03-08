@@ -21,7 +21,7 @@ export function WorkspacePanel({
   children,
 }: WorkspacePanelProps) {
   return (
-    <Card className="flex min-h-105 flex-col">
+    <Card className="flex flex-col">
       <CardHeader className="pb-4">
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-accent">
           {eyebrow}
