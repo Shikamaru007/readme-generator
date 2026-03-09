@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Mono } from "next/font/google";
 import localFont from "next/font/local";
+import { Analytics } from "@vercel/analytics/next"
 import "./globals.css";
 
 const satoshi = localFont({
@@ -53,6 +54,7 @@ export default function RootLayout({
         className={`${satoshi.variable} ${spaceMono.variable} bg-background text-foreground antialiased`}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
